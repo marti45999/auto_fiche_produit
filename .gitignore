@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Résultats du scraper
+product_*.json
+*.csv
+
+# Logs et debug
+*.log
+*.html
+debug_*.py
+test_*.py
+!test_scraper.py
+
+# Fichiers temporaires
+*.tmp
+*.bak
+~*
+
+# Binaires téléchargés
+geckodriver
+*.tar.gz
+*.zip
