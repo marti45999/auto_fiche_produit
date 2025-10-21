@@ -197,7 +197,15 @@ class CocooncenterScraper(BaseScraper):
         # 4. CODE EAN
         ean_elem = soup.find("span", itemprop="gtin13")
         if ean_elem:
-            product["ean_verif"] = self._text_or_empty(ean_elem)
+            extracted_ean = self._text_or_empty(ean_elem)
+            product["ean_verif"] = extracted_ean
+
+            # ✅ VALIDATION EAN : Vérifier que l'EAN extrait correspond au code EAN recherché
+            if extracted_ean and extracted_ean != ean:
+                raise ValueError(
+                    f"❌ EAN non correspondant : recherché={ean}, trouvé={extracted_ean}. "
+                    f"Le produit sur cette page n'est pas celui demandé."
+                )
 
         # 5. CONTENANCE (recherche dans les td)
         contenance_match = re.search(r'<td[^>]*>([^<]*\d+\s*(?:ml|mL|ML|cl|CL)[^<]*)</td>', html, re.IGNORECASE)
@@ -353,7 +361,15 @@ class PharmaGDDScraper(BaseScraper):
 
         ean_match = re.search(r'<span data-js-product-reference[^>]*>([^<]*)', html)
         if ean_match:
-            product["ean_verif"] = self._clean_entities(ean_match.group(1))
+            extracted_ean = self._clean_entities(ean_match.group(1))
+            product["ean_verif"] = extracted_ean
+
+            # ✅ VALIDATION EAN : Vérifier que l'EAN extrait correspond au code EAN recherché
+            if extracted_ean and extracted_ean != ean:
+                raise ValueError(
+                    f"❌ EAN non correspondant : recherché={ean}, trouvé={extracted_ean}. "
+                    f"Le produit sur cette page n'est pas celui demandé."
+                )
 
         custom_match = re.search(r'<span data-js-custom-code[^>]*>([^<]*)', html)
         if custom_match:
@@ -419,7 +435,15 @@ class DrakkarsScraper(BaseScraper):
 
         ref_elem = soup.find(id="product_reference")
         if ref_elem:
-            product["reference"] = self._text_or_empty(ref_elem)
+            extracted_ref = self._text_or_empty(ref_elem)
+            product["reference"] = extracted_ref
+
+            # ✅ VALIDATION EAN : Vérifier que la référence correspond au code EAN recherché
+            if extracted_ref != ean:
+                raise ValueError(
+                    f"❌ EAN non correspondant : recherché={ean}, trouvé={extracted_ref}. "
+                    f"Le produit sur cette page n'est pas celui demandé."
+                )
 
         variantes = {
             self._clean_entities(a.get("title", ""))

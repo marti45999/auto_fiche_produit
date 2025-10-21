@@ -101,19 +101,50 @@ class MasterScraper:
         print(f"✅ Produit trouvé sur {len(found_sites)} site(s): {found_names}\n")
 
         products: Dict[str, Dict] = {}
+        extraction_count = 0
+        extraction_errors = 0
 
-        for site_key in found_sites:
+        for idx, site_key in enumerate(found_sites, 1):
             result = search_results[site_key]
             print(f"{'─' * 70}")
-            print(f"🏪 Extraction depuis {result.site}...")
+            print(f"🏪 [{idx}/{len(found_sites)}] Extraction depuis {result.site}...")
+            print(f"🔗 URL: {result.url}")
             print(f"{'─' * 70}")
 
             try:
+                print(f"🚀 Début de l'extraction pour {site_key}...")
                 product_data = self.scrapers[site_key].extract(result.url, ean)
-                products[site_key] = product_data
-                print("✅ Extraction réussie\n")
+
+                if product_data:
+                    products[site_key] = product_data
+                    extraction_count += 1
+                    print(f"✅ Extraction réussie pour {result.site}")
+                    print(f"📦 Données extraites: Titre='{product_data.get('titre', 'N/A')}', Prix={product_data.get('prix', 'N/A')}")
+                else:
+                    print(f"⚠️  Extraction a retourné des données vides pour {result.site}")
+                    extraction_errors += 1
+
+                print()
+            except ValueError as exc:  # EAN validation error
+                extraction_errors += 1
+                print(f"❌ ERREUR DE VALIDATION: {exc}")
+                print(f"   Site: {result.site}")
+                print(f"   EAN: {ean}\n")
             except Exception as exc:  # noqa: BLE001
-                print(f"⚠️  Erreur lors de l'extraction: {exc}\n")
+                extraction_errors += 1
+                print(f"❌ ERREUR LORS DE L'EXTRACTION: {type(exc).__name__}")
+                print(f"   Site: {result.site}")
+                print(f"   Message: {str(exc)}")
+                import traceback
+                print(f"   Traceback:")
+                traceback.print_exc()
+                print()
+
+        print(f"{'=' * 70}")
+        print(f"📊 BILAN EXTRACTION:")
+        print(f"   ✅ Succès: {extraction_count}/{len(found_sites)}")
+        print(f"   ❌ Erreurs: {extraction_errors}/{len(found_sites)}")
+        print(f"{'=' * 70}\n")
 
         return products
 
